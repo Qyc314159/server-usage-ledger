@@ -8,6 +8,9 @@
  *   FEISHU_APP_SECRET  飞书自建应用 App Secret
  *   FEISHU_DOC_TOKEN   台账文档 token（飞书 URL /docx/<这一串>）
  *   FEISHU_DOC_URL     可选，设置后 `where` 直接打印它
+ *   FEISHU_BASE_URL    可选，API 主机。默认 https://open.feishu.cn
+ *                      （飞书国际版 Lark 用 https://open.larksuite.com）
+ *   LEDGER_WINDOW_DAYS 可选，滚动窗口半径（天）。默认 3 → 今天 ±3 天
  *
  * 用法：
  *   node ledger.mjs read                     # 把文档导出为 Markdown（供 AI 读取）
@@ -15,6 +18,7 @@
  *   node ledger.mjs append <file.md>         # 把一个 Markdown 文件追加到文档
  *   node ledger.mjs append -                 # 从 stdin 读 Markdown 追加
  *   node ledger.mjs del <block_id> [...]     # 删除指定区块（清理窗口外条目）
+ *   node ledger.mjs window                   # 打印滚动窗口 [起, 止]（按 LEDGER_WINDOW_DAYS）
  *   node ledger.mjs where                    # 输出文档地址
  */
 import fs from 'node:fs';
@@ -22,7 +26,6 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const BASE = 'https://open.feishu.cn/open-apis';
 
 function loadEnv() {
   const env = { ...process.env };
@@ -37,6 +40,12 @@ function loadEnv() {
 }
 
 const env = loadEnv();
+
+// 全部可配置：API 主机与滚动窗口都不写死
+const API_BASE =
+  (env.FEISHU_BASE_URL || 'https://open.feishu.cn').replace(/\/+$/, '') + '/open-apis';
+const WINDOW_DAYS = Number(env.LEDGER_WINDOW_DAYS || 3);
+
 const APP_ID = env.FEISHU_APP_ID;
 const APP_SECRET = env.FEISHU_APP_SECRET;
 const DOC = env.FEISHU_DOC_TOKEN;
@@ -49,7 +58,7 @@ if (!APP_ID || !APP_SECRET || !DOC) {
 let TOKEN = null;
 async function api(method, url, body) {
   if (!TOKEN) {
-    const r = await fetch(`${BASE}/auth/v3/tenant_access_token/internal`, {
+    const r = await fetch(`${API_BASE}/auth/v3/tenant_access_token/internal`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ app_id: APP_ID, app_secret: APP_SECRET }),
@@ -58,7 +67,7 @@ async function api(method, url, body) {
     if (j.code !== 0) throw new Error(`auth failed: ${j.msg}`);
     TOKEN = j.tenant_access_token;
   }
-  const r = await fetch(`${BASE}${url}`, {
+  const r = await fetch(`${API_BASE}${url}`, {
     method,
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${TOKEN}` },
     body: body ? JSON.stringify(body) : undefined,
@@ -66,6 +75,20 @@ async function api(method, url, body) {
   const j = await r.json();
   if (j.code !== 0) throw new Error(`${method} ${url} -> ${j.code} ${j.msg}`);
   return j.data;
+}
+
+function windowRange() {
+  const day = 24 * 60 * 60 * 1000;
+  const localISO = (t) => {
+    const d = new Date(t);
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  };
+  const now = Date.now();
+  return {
+    window: [localISO(now - WINDOW_DAYS * day), localISO(now + WINDOW_DAYS * day)],
+    days: WINDOW_DAYS,
+  };
 }
 
 function textOf(b) {
@@ -217,6 +240,9 @@ try {
   if (cmd === 'read') await cmdRead();
   else if (cmd === 'append') await cmdAppend(rest[0]);
   else if (cmd === 'del') await cmdDel(rest);
+  else if (cmd === 'window') {
+    console.log(JSON.stringify(windowRange()));
+  }
   else if (cmd === 'where') {
     console.log(env.FEISHU_DOC_URL || `doc_token=${DOC}（未设置 FEISHU_DOC_URL）`);
   }

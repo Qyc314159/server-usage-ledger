@@ -3,14 +3,14 @@ name: server-usage-ledger
 description: >
   多人共用一台 GPU / 计算服务器时，用一张飞书文档当「使用台账」：记录谁在什么时候用了哪几张卡、
   跑什么任务、多久、batch_size、是否并行、还有没有并行空间。台账由 AI 读写维护，
-  只保留「今天 ±3 天」的滚动窗口，人类只在填写区登记 —— 解决多人抢卡、互相不知情、排期靠问人的问题。
+  只保留「今天 ±N 天」（`LEDGER_WINDOW_DAYS`，默认 3）的滚动窗口，人类只在填写区登记 —— 解决多人抢卡、互相不知情、排期靠问人的问题。
   触发词：服务器台账、GPU 使用记录、显卡占用、卡占用、并行登记、共享服务器排期、使用日志、
   记录显卡使用、谁在用服务器、飞书台账、usage ledger、server ledger。
 ---
 
 # 服务器使用台账（Feishu Ledger）
 
-> 给多人共用的服务器（尤其是 8 卡 GPU 机）做一张**由 AI 维护**的使用台账。
+> 给多人共用的服务器（多卡 GPU 机、计算集群等）做一张**由 AI 维护**的使用台账。
 > 人类只负责登记，AI 负责读写、汇总、清理窗口。
 
 ## 解决什么问题
@@ -30,11 +30,11 @@ description: >
 | 三、填写区 | 人 + AI 追加（按日期分组） |
 | 四、AI 读取区 | AI 重写（结构化 YAML 汇总） |
 
-**滚动窗口 = 今天 −3 天 ~ 今天 +3 天**，窗外条目自动清理。
+**滚动窗口 = 今天 −N 天 ~ 今天 +N 天**（`LEDGER_WINDOW_DAYS`，默认 3），窗外条目自动清理。
 
 ## 一次性搭建
 
-1. 在 `open.feishu.cn/app` 建一个**自建应用**，开通权限 `docx:document`（读写文档），发布版本
+1. 在 `open.feishu.cn/app` 建一个**自建应用**（飞书国际版 Lark 用 `open.larksuite.com`），开通权限 `docx:document`（读写文档），发布版本
 2. 建一张飞书文档，把 [`references/doc-template.md`](references/doc-template.md) 的内容粘进去
 3. 把文档**分享给该应用**（应用 → 可编辑）
 4. `cp .env.example .env`，填 `FEISHU_APP_ID` / `FEISHU_APP_SECRET` / `FEISHU_DOC_TOKEN`
@@ -61,6 +61,7 @@ node scripts/ledger.mjs read             # 文档 → Markdown
 node scripts/ledger.mjs read --ids       # 附带每个区块的 block_id（清理用）
 node scripts/ledger.mjs append <file.md> # Markdown → 飞书区块（顺序可靠）
 node scripts/ledger.mjs del <block_id>   # 删除区块（清理窗口外条目）
+node scripts/ledger.mjs window           # 打印当前滚动窗口（按 LEDGER_WINDOW_DAYS）
 node scripts/ledger.mjs where            # 打印文档地址
 ```
 

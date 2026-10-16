@@ -10,6 +10,7 @@
 ## 步骤
 
 1. 打开 <https://open.feishu.cn/app> → **创建企业自建应用**（名字随意，如 `usage-ledger`）
+   > 飞书国际版 Lark 用 <https://open.larksuite.com/app>，并在 `.env` 里把 `FEISHU_BASE_URL` 设为 `https://open.larksuite.com`
 2. 进「**凭证与基础信息**」→ 复制 **App ID / App Secret**
 3. 进「**权限管理**」→ 开通：
    - `docx:document` —— **必需**（读写文档）
@@ -20,7 +21,11 @@
    - 在文档「分享」里搜应用名添加
    - 或「链接分享 = 租户内可编辑」（更省事，推荐）
 7. `cp .env.example .env`，填 `FEISHU_APP_ID` / `FEISHU_APP_SECRET` / `FEISHU_DOC_TOKEN`
-8. 自检：`node scripts/ledger.mjs read` 能读出内容 = 通了
+8. 自检：
+   ```bash
+   node scripts/ledger.mjs window   # 打印滚动窗口
+   node scripts/ledger.mjs read     # 能读出内容 = 通了
+   ```
 
 ## 常见坑
 

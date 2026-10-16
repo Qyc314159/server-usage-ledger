@@ -7,7 +7,8 @@
 
 人类只填「三、填写区」。你做四件事：**读 → 追加/更新 → 重算读取区 → 清理窗口**。
 
-**滚动窗口 = 今天 −3 天 ~ 今天 +3 天。**
+**滚动窗口 = 今天 −N 天 ~ 今天 +N 天**（`LEDGER_WINDOW_DAYS`，默认 3）。
+> 别自己算，直接跑：`node scripts/ledger.mjs window`
 
 ## 工具
 
@@ -16,6 +17,7 @@ node scripts/ledger.mjs read             # 文档 → Markdown
 node scripts/ledger.mjs read --ids       # 附带 block_id
 node scripts/ledger.mjs append <file.md> # 追加 Markdown
 node scripts/ledger.mjs del <block_id>   # 删除区块
+node scripts/ledger.mjs window           # 打印当前滚动窗口
 node scripts/ledger.mjs where            # 文档地址
 ```
 
@@ -45,7 +47,7 @@ node scripts/ledger.mjs where            # 文档地址
 
 ```yaml
 window: ["2026-10-12", "2026-10-18"]
-generated_at: "2026-10-15T10:00:00+08:00"
+generated_at: "2026-10-15T10:00:00+08:00"   # 用本机时区的当前时间
 summary:
   total_card_hours: 128.0
   by_user: { A: 64.0 }

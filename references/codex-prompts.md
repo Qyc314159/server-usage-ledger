@@ -6,8 +6,9 @@
 你从现在起负责维护飞书文档「服务器使用台账」。
 
 【第一步：只读】
-1. 读 ledger/AGENTS.md（执行规范）和 ledger/README.md（背景）
-2. 运行 node ledger/scripts/ledger.mjs read --ids 把文档现状读出来
+1. 读本 skill 目录下的 AGENTS.md（执行规范）和 README.md（背景）
+2. 运行 node scripts/ledger.mjs read --ids 把文档现状读出来
+3. 运行 node scripts/ledger.mjs window 拿到本次的滚动窗口
 
 凭据已配在 ledger/.env，直接可用。不要打印/外发 .env 内容。
 
@@ -20,15 +21,16 @@
 
 【规则提醒】
 - 只改「三、填写区」和「四、AI 读取区」；「一、使用说明」「二、AI 操作规范」不要动
-- 保持滚动窗口 今天−3天 ~ 今天+3天；窗外条目用 del <block_id> 清掉
+- 保持滚动窗口（node scripts/ledger.mjs window 给出的区间）；窗外条目用 del <block_id> 清掉
 - 拿不准的字段留空并标 note: "待确认"，不要编数据
 - 写完回读一次确认
 
-【命令】
-node ledger/scripts/ledger.mjs read --ids
-node ledger/scripts/ledger.mjs append 记录.md
-node ledger/scripts/ledger.mjs del <block_id>
-node ledger/scripts/ledger.mjs where
+【命令】（在本 skill 目录下运行）
+node scripts/ledger.mjs read --ids
+node scripts/ledger.mjs window
+node scripts/ledger.mjs append 记录.md
+node scripts/ledger.mjs del <block_id>
+node scripts/ledger.mjs where
 
 完成后用 3 行以内汇报：记了什么 / 清了什么 / 有无冲突。
 ```

@@ -3,7 +3,7 @@
 多人共用一台 GPU / 计算服务器时的**使用台账**：一张飞书文档 + 一个零依赖 CLI + 一套 AI 维护规范。
 
 - 📄 **文档四段**：使用说明 / AI 操作规范 / 填写区 / AI 读取区
-- 🔄 **滚动窗口**：只保留「今天 ±3 天」，窗外自动清理
+- 🔄 **滚动窗口**：只保留「今天 ±3 天」（半径可配，默认 3 天），窗外自动清理
 - 🤖 **AI 维护**：人类只登记，AI 负责读写、汇总、冲突检测
 - 🧩 **零依赖**：Node ≥ 18，只用内置 `fetch`
 
@@ -12,6 +12,7 @@
 ```bash
 cp .env.example .env      # 填 FEISHU_APP_ID / FEISHU_APP_SECRET / FEISHU_DOC_TOKEN
 node scripts/ledger.mjs read    # 能读出文档 = 配好了
+node scripts/ledger.mjs window  # 看当前滚动窗口
 ```
 
 ## 它长什么样
@@ -27,7 +28,7 @@ node scripts/ledger.mjs read    # 能读出文档 = 配好了
 
 ```yaml
 - date: 2026-10-15
-  user: 乔
+  user: A
   cards: [0, 1, 2, 3]
   start: "09:00"
   end: "18:00"

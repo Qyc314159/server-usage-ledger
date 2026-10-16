@@ -11,7 +11,8 @@
 3. **重算**：覆写「四、AI 读取区」（结构化 YAML）
 4. **清理**：删掉窗口外的条目
 
-**滚动窗口 = 今天 −3 天 ~ 今天 +3 天。**
+**滚动窗口 = 今天 −N 天 ~ 今天 +N 天**（`LEDGER_WINDOW_DAYS`，默认 3）。
+> **别自己算窗口** —— 跑 `node scripts/ledger.mjs window`，它按配置返回 `[起, 止]`。
 
 ## 1. 工具
 
@@ -20,6 +21,7 @@ node scripts/ledger.mjs read             # 文档 → Markdown
 node scripts/ledger.mjs read --ids       # 附带 block_id（清理时用）
 node scripts/ledger.mjs append <file.md> # 追加 Markdown
 node scripts/ledger.mjs del <block_id>... # 删除区块
+node scripts/ledger.mjs window           # 打印滚动窗口（按 LEDGER_WINDOW_DAYS）
 node scripts/ledger.mjs where            # 文档地址
 ```
 
@@ -65,8 +67,8 @@ node scripts/ledger.mjs where            # 文档地址
 ## 3. AI 读取区格式（覆写「四、AI 读取区」的 YAML 代码块）
 
 ```yaml
-window: ["2026-10-12", "2026-10-18"]     # 今天 ±3 天
-generated_at: "2026-10-15T10:00:00+08:00"
+window: ["2026-10-12", "2026-10-18"]     # 用 `ledger.mjs window` 输出，别手算
+generated_at: "2026-10-15T10:00:00+08:00"   # 本机时区的当前时间
 summary:
   total_card_hours: 128.0                # Σ(hours × len(cards))
   by_user: { A: 64.0, B: 64.0 }          # 人 → 卡·小时
@@ -78,11 +80,12 @@ entries: []                              # 规范化后的逐条记录（同 §2
 ## 4. 每次操作的标准流程
 
 1. `read --ids`（拿到最新内容 + block_id）
-2. 判断要**追加**、**更新**还是**删除**
-3. 写入 / 修改
-4. **重算 §3**：用窗口内的全部条目
-5. **清理**：`del` 掉 < 今天−3 天 和 > 今天+3 天的条目
-6. 回读一次确认
+2. `window`（拿到本次要保留的日期区间）
+3. 判断要**追加**、**更新**还是**删除**
+4. 写入 / 修改
+5. **重算 §3**：只用窗口内的条目
+6. **清理**：`del` 掉窗口外的条目（早于起点 / 晚于终点）
+7. 回读一次确认
 
 ## 5. 铁律
 
